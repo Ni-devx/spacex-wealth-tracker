@@ -4,7 +4,6 @@ export const revalidate = 60; // 60秒キャッシュ
 
 export async function GET() {
   try {
-    // ★追加: Yahoo FinanceにBotと判定されないよう、一般的なブラウザのUser-Agentを設定
     const headers = {
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
       'Accept': 'application/json'
@@ -15,7 +14,6 @@ export async function GET() {
       fetch('https://query1.finance.yahoo.com/v8/finance/chart/JPY=X', { headers })
     ]);
 
-    // もしブロックされた場合はエラーを投げて原因をわかりやすくする
     if (!spcxRes.ok || !jpyRes.ok) {
       throw new Error(`API blocked: SPCX ${spcxRes.status}, JPY ${jpyRes.status}`);
     }
@@ -27,8 +25,9 @@ export async function GET() {
     const jpyRate = jpyData.chart.result[0].meta.regularMarketPrice;
 
     return NextResponse.json({ spcxPrice, jpyRate });
-  } catch (error: any) {
-    console.error("Fetch Error:", error.message);
-    return NextResponse.json({ error: 'Failed to fetch', details: error.message }, { status: 500 });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error("Fetch Error:", errorMessage);
+    return NextResponse.json({ error: 'Failed to fetch', details: errorMessage }, { status: 500 });
   }
 }
