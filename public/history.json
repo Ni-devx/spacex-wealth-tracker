@@ -1,5 +1,22 @@
 [
-  { "timestamp": "2026-06-12T16:00:00Z", "spcxPrice": 135.0, "jpyRate": 155.0 },
-  { "timestamp": "2026-06-15T16:00:00Z", "spcxPrice": 142.5, "jpyRate": 156.2 },
-  { "timestamp": "2026-06-18T16:00:00Z", "spcxPrice": 155.0, "jpyRate": 157.0 }
+  {
+    "timestamp": "2026-06-12T16:00:00Z",
+    "spcxPrice": 135,
+    "jpyRate": 155
+  },
+  {
+    "timestamp": "2026-06-15T16:00:00Z",
+    "spcxPrice": 142.5,
+    "jpyRate": 156.2
+  },
+  {
+    "timestamp": "2026-06-18T16:00:00Z",
+    "spcxPrice": 155,
+    "jpyRate": 157
+  },
+  {
+    "timestamp": "2026-06-18T15:16:19.270Z",
+    "spcxPrice": 180.23,
+    "jpyRate": 160.892
+  }
 ]
