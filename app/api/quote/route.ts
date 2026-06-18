@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 
-export const runtime = 'edge';
 export const revalidate = 60; // 60秒キャッシュ（1分間のアクセス集中対策）
 
 export async function GET() {
