@@ -1,65 +1,114 @@
-import Image from "next/image";
+'use client';
+import { useEffect, useState, useRef } from 'react';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+
+const TOTAL_SHARES = 13_111_111_111; // SpaceXの仮定発行済株式数
+const ELON_PERCENTAGE = 0.42;
+const ELON_SHARES = TOTAL_SHARES * ELON_PERCENTAGE;
+
+// ★あなたの「GitHubユーザー名/レポジトリ名」に変更してください
+const GITHUB_REPO = 'Ni-devx/spacex-wealth-tracker'; 
+
+function useAnimatedValue(targetValue: number) {
+  const [displayValue, setDisplayValue] = useState(targetValue);
+  const prevValueRef = useRef(targetValue);
+
+  useEffect(() => {
+    if (targetValue === prevValueRef.current || targetValue === 0) return;
+    const startValue = prevValueRef.current === 0 ? targetValue : prevValueRef.current;
+    const startTime = Date.now();
+    const duration = 60000; // 1分かけてアニメーション
+
+    const animate = () => {
+      const progress = Math.min((Date.now() - startTime) / duration, 1);
+      setDisplayValue(startValue + (targetValue - startValue) * progress);
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        prevValueRef.current = targetValue;
+      }
+    };
+    requestAnimationFrame(animate);
+  }, [targetValue]);
+
+  return displayValue;
+}
 
 export default function Home() {
+  const [currency, setCurrency] = useState<'USD' | 'JPY'>('USD');
+  const [currentPrice, setCurrentPrice] = useState(0);
+  const [currentRate, setCurrentRate] = useState(0);
+  const [history, setHistory] = useState([]);
+
+  useEffect(() => {
+    const fetchRealtime = async () => {
+      try {
+        const res = await fetch('/api/quote');
+        const data = await res.json();
+        if (data.spcxPrice) {
+          setCurrentPrice(data.spcxPrice);
+          setCurrentRate(data.jpyRate);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    fetchRealtime();
+    const interval = setInterval(fetchRealtime, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const res = await fetch(`https://raw.githubusercontent.com/${GITHUB_REPO}/main/public/history.json`);
+        if (res.ok) setHistory(await res.json());
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    fetchHistory();
+  }, []);
+
+  const rawWealth = currentPrice > 0 
+    ? (ELON_SHARES * currentPrice * (currency === 'JPY' ? currentRate : 1)) 
+    : 0;
+  
+  const animatedWealth = useAnimatedValue(rawWealth);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6">
+      <div className="w-full max-w-2xl bg-zinc-900 border border-zinc-800 p-8 rounded-2xl space-y-8">
+        <div className="text-center">
+          <h1 className="text-xl text-zinc-400 font-medium">Elon Musk / SpaceX Asset Tracker</h1>
+          <div className="text-4xl md:text-5xl font-mono font-bold text-emerald-400 mt-4">
+            {currency === 'USD' ? '$' : '¥'}
+            {(animatedWealth || rawWealth).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+          </div>
+          <p className="text-xs text-zinc-500 mt-2">※1分かけて緩やかに更新されます</p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+
+        <div className="flex justify-center">
+          <button 
+            onClick={() => setCurrency(c => c === 'USD' ? 'JPY' : 'USD')}
+            className="px-6 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-full text-sm font-medium transition"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            {currency === 'USD' ? '表示を 日本円(JPY) に切り替え' : '表示を 米ドル(USD) に切り替え'}
+          </button>
         </div>
-      </main>
-    </div>
+
+        <div className="h-64 w-full">
+          <h2 className="text-sm text-zinc-400 mb-2">歴史データ (3時間ごと更新)</h2>
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={history}>
+              <XAxis dataKey="timestamp" tickFormatter={(t) => new Date(t).toLocaleDateString()} stroke="#52525b" />
+              <YAxis stroke="#52525b" domain={['auto', 'auto']} hide />
+              <Tooltip labelFormatter={(t) => new Date(t).toLocaleString()} contentStyle={{ background: '#18181b', border: '1px solid #3f3f46' }} />
+              <Line type="monotone" dataKey="spcxPrice" stroke="#10b981" strokeWidth={2} dot={false} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+    </main>
   );
 }
