@@ -443,5 +443,10 @@
     "timestamp": "2026-07-02T22:08:33.004Z",
     "spcxPrice": 162,
     "jpyRate": 161.11
+  },
+  {
+    "timestamp": "2026-07-03T03:25:53.451Z",
+    "spcxPrice": 162,
+    "jpyRate": 161.203
   }
 ]
