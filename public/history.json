@@ -2013,5 +2013,10 @@
     "timestamp": "2026-08-14T18:55:35.938Z",
     "spcxPrice": 139.88,
     "jpyRate": 159.363
+  },
+  {
+    "timestamp": "2026-08-14T21:26:07.130Z",
+    "spcxPrice": 140,
+    "jpyRate": 159.305
   }
 ]
